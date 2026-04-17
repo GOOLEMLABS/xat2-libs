@@ -15,16 +15,16 @@ package com.goolem.kmp.phash
  * val match = HashBlocklist.Default.findMatch(hash)
  * ```
  */
-class HashBlocklist {
+public class HashBlocklist {
 
-    /** A single known-bad hash entry. */
-    data class BlockedHash(val hash: Long, val label: String)
+    public data class BlockedHash(val hash: Long, val label: String)
 
     private val hashes = mutableListOf<BlockedHash>()
+    private val exactSet = mutableSetOf<Long>()
 
-    /** Add a single known-bad hash. */
-    fun addHash(hash: Long, label: String = "blocked") {
+    public fun addHash(hash: Long, label: String = "blocked") {
         hashes.add(BlockedHash(hash, label))
+        exactSet.add(hash)
     }
 
     /**
@@ -36,7 +36,7 @@ class HashBlocklist {
      * ```
      * Lines starting with `#` are ignored.
      */
-    fun loadFromLines(lines: List<String>) {
+    public fun loadFromLines(lines: List<String>) {
         for (line in lines) {
             val trimmed = line.trim()
             if (trimmed.isEmpty() || trimmed.startsWith('#')) continue
@@ -45,22 +45,30 @@ class HashBlocklist {
                 val hash  = parts[0].trim().toLong(16)
                 val label = if (parts.size > 1) parts[1].trim() else "blocked"
                 hashes.add(BlockedHash(hash, label))
+                exactSet.add(hash)
             }
         }
     }
 
-    /** Number of hashes currently loaded. */
-    val size: Int get() = hashes.size
+    public val size: Int get() = hashes.size
 
     /**
      * Find the first match for [hash] within [threshold] Hamming bits.
      * Returns null if no match is found.
+     *
+     * Fast path: exact matches (threshold 0) are checked via HashSet O(1).
+     * Fuzzy matches iterate linearly — for very large blocklists (>100k entries)
+     * consider multi-index hashing or partitioned lookup.
      */
-    fun findMatch(hash: Long, threshold: Int = 10): BlockedHash? =
-        hashes.firstOrNull { PHash.isSimilar(it.hash, hash, threshold) }
+    public fun findMatch(hash: Long, threshold: Int = 10): BlockedHash? {
+        if (exactSet.contains(hash)) {
+            return hashes.first { it.hash == hash }
+        }
+        if (threshold == 0) return null
+        return hashes.firstOrNull { PHash.isSimilar(it.hash, hash, threshold) }
+    }
 
-    companion object {
-        /** Shared default instance used by [ContentScanner]. */
-        val Default = HashBlocklist()
+    public companion object {
+        public val Default: HashBlocklist = HashBlocklist()
     }
 }

@@ -25,7 +25,7 @@ import kotlin.math.sqrt
  * val similar = PHash.isSimilar(hash, knownHash)
  * ```
  */
-object PHash {
+public object PHash {
 
     private const val SIZE = 32
     private const val KEEP = 8
@@ -34,7 +34,7 @@ object PHash {
      * Compute pHash from a 32×32 grayscale byte array (row-major, one byte per pixel).
      * Use [decodeToGrayscale32x32] to obtain the correct input from raw image bytes.
      */
-    fun compute(grayscale32x32: ByteArray): Long {
+    public fun compute(grayscale32x32: ByteArray): Long {
         require(grayscale32x32.size == SIZE * SIZE) {
             "Expected ${SIZE * SIZE} bytes, got ${grayscale32x32.size}"
         }
@@ -55,13 +55,13 @@ object PHash {
     }
 
     /** Number of differing bits between two hashes (0 = identical, 64 = completely different). */
-    fun hammingDistance(a: Long, b: Long): Int = (a xor b).countOneBits()
+    public fun hammingDistance(a: Long, b: Long): Int = (a xor b).countOneBits()
 
     /**
      * Returns true if two hashes are visually similar within [threshold] Hamming bits.
      * A threshold of 10 is generous (more matches); 6 is stricter (fewer false positives).
      */
-    fun isSimilar(a: Long, b: Long, threshold: Int = 10): Boolean =
+    public fun isSimilar(a: Long, b: Long, threshold: Int = 10): Boolean =
         hammingDistance(a, b) <= threshold
 
     private fun dct2d(input: Array<FloatArray>): Array<FloatArray> {

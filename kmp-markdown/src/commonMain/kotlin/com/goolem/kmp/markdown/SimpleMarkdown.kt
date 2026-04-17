@@ -34,15 +34,19 @@ import androidx.compose.ui.unit.sp
  * @param color     Text color. Defaults to [LocalContentColor] (inherits from parent theme).
  * @param codeColor Inline-code text color. Defaults to [MaterialTheme.colorScheme.outline].
  */
+/** Maximum input length to prevent excessive CPU usage from regex parsing. */
+public var maxInputLength: Int = 50_000
+
 @Composable
-fun SimpleMarkdown(
+public fun SimpleMarkdown(
     content: String,
     modifier: Modifier = Modifier,
     color: Color = LocalContentColor.current,
     codeColor: Color = MaterialTheme.colorScheme.outline,
 ) {
-    val annotated = remember(content, color, codeColor) {
-        buildMarkdown(content, color, codeColor)
+    val safe = if (content.length > maxInputLength) content.take(maxInputLength) else content
+    val annotated = remember(safe, color, codeColor) {
+        buildMarkdown(safe, color, codeColor)
     }
     Text(
         text     = annotated,
@@ -99,7 +103,7 @@ private fun buildMarkdown(raw: String, textColor: Color, codeColor: Color): Anno
     }
 
 private fun AnnotatedString.Builder.appendInline(text: String, textColor: Color, codeColor: Color) {
-    val pattern = Regex("""\*\*(.+?)\*\*|__(.+?)__|`(.+?)`|\*(.+?)\*|_(.+?)_""")
+    val pattern = Regex("""\*\*([^*]+)\*\*|__([^_]+)__|`([^`]+)`|\*([^*]+)\*|_([^_]+)_""")
     var last = 0
     for (match in pattern.findAll(text)) {
         if (match.range.first > last) append(text.substring(last, match.range.first))

@@ -9,4 +9,4 @@ package com.goolem.kmp.phash
  * Provided by `androidMain` (android.graphics.BitmapFactory) and
  * `iosMain` (CoreGraphics CGBitmapContext).
  */
-expect fun decodeToGrayscale32x32(imageBytes: ByteArray): ByteArray?
+public expect fun decodeToGrayscale32x32(imageBytes: ByteArray): ByteArray?

@@ -23,24 +23,35 @@ package com.goolem.kmp.phash
  * }
  * ```
  */
-class ContentScanner(private val blocklist: HashBlocklist = HashBlocklist.Default) {
+public class ContentScanner(
+    private val blocklist: HashBlocklist = HashBlocklist.Default,
+    private val failOpen: Boolean = true,
+) {
 
-    sealed class Result {
-        data object Allowed : Result()
-        data class Blocked(val reason: String) : Result()
+    public sealed class Result {
+        public data object Allowed : Result()
+        public data class Blocked(val reason: String) : Result()
     }
 
     /**
      * Scan [imageBytes] (raw JPEG / WebP / PNG).
      *
-     * Returns [Result.Allowed] on decoding errors to avoid blocking on false failures (fail-open).
+     * If the image cannot be decoded, behaviour depends on [failOpen]:
+     *  - `true` (default): returns [Result.Allowed] to avoid blocking on invalid images.
+     *  - `false`: returns [Result.Blocked] with reason — use this when false negatives
+     *    are more dangerous than false positives (e.g. CSAM scanning).
      */
-    fun scan(imageBytes: ByteArray): Result {
+    public fun scan(imageBytes: ByteArray): Result {
         if (blocklist.size == 0) return Result.Allowed
 
-        val grayscale = decodeToGrayscale32x32(imageBytes) ?: return Result.Allowed
-        val hash      = PHash.compute(grayscale)
-        val match     = blocklist.findMatch(hash) ?: return Result.Allowed
+        val grayscale = decodeToGrayscale32x32(imageBytes)
+        if (grayscale == null) {
+            return if (failOpen) Result.Allowed
+            else Result.Blocked("Image could not be decoded for content scanning")
+        }
+
+        val hash  = PHash.compute(grayscale)
+        val match = blocklist.findMatch(hash) ?: return Result.Allowed
 
         return Result.Blocked("Content matches known hash (${match.label})")
     }

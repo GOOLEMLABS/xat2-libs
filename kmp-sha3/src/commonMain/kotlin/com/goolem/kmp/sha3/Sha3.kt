@@ -11,13 +11,13 @@ package com.goolem.kmp.sha3
  * val hash: ByteArray = Sha3.sha3_256("hello".encodeToByteArray())
  * ```
  */
-object Sha3 {
+public object Sha3 {
 
     private const val RATE          = 136  // 1088 bits / 8
     private const val OUTPUT_LENGTH = 32   // 256 bits
 
     /** Compute SHA3-256 of [input]. Returns 32 bytes. */
-    fun sha3_256(input: ByteArray): ByteArray {
+    public fun sha3_256(input: ByteArray): ByteArray {
         val state  = LongArray(25)
         val padded = pad(input)
 
@@ -72,7 +72,7 @@ object Sha3 {
     }
 
     private fun rotateLeft(value: Long, shift: Int): Long {
-        val s = shift % 64
+        val s = ((shift % 64) + 64) % 64
         return if (s == 0) value else (value shl s) or (value ushr (64 - s))
     }
 
@@ -94,12 +94,13 @@ object Sha3 {
         18,  2, 61, 56, 14
     )
 
-    private val ROUND_CONSTANTS = longArrayOf(
-        0x0000000000000001L, 0x0000000000008082L, -0x7FFFFFFFFFFF7F76L, -0x7FFFFFFF7FFF8000L,
-        0x000000000000808BL, 0x0000000080000001L, -0x7FFFFFFF7FFF7F7FL, -0x7FFFFFFFFFFF7FF7L,
-        0x000000000000008AL, 0x0000000000000088L, 0x0000000080008009L, 0x000000008000000AL,
-        0x000000008000808BL, -0x7FFFFFFFFFFFFF75L, -0x7FFFFFFFFFFF7F77L, -0x7FFFFFFFFFFF7FFdL,
-        -0x7FFFFFFFFFFF7FFfL, -0x7FFFFFFFFFFF7F6FL, 0x000000000000800AL, -0x7FFFFFFF7FFF7F7EL,
-        -0x7FFFFFFF7FFF7FFdL, -0x7FFFFFFFFFFF7F7EL, 0x0000000080000081L, -0x7FFFFFFF7FFF7FF8L,
-    )
+    @OptIn(ExperimentalUnsignedTypes::class)
+    private val ROUND_CONSTANTS: LongArray = ulongArrayOf(
+        0x0000000000000001uL, 0x0000000000008082uL, 0x800000000000808AuL, 0x8000000080008000uL,
+        0x000000000000808BuL, 0x0000000080000001uL, 0x8000000080008081uL, 0x8000000000008009uL,
+        0x000000000000008AuL, 0x0000000000000088uL, 0x0000000080008009uL, 0x000000008000000AuL,
+        0x000000008000808BuL, 0x800000000000008BuL, 0x8000000000008089uL, 0x8000000000008003uL,
+        0x8000000000008002uL, 0x8000000000000080uL, 0x000000000000800AuL, 0x800000008000000AuL,
+        0x8000000080008081uL, 0x8000000000008080uL, 0x0000000080000001uL, 0x8000000080008008uL,
+    ).asLongArray()
 }
