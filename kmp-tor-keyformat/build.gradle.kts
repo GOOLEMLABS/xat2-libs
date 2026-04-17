@@ -4,6 +4,7 @@ plugins {
 }
 
 kotlin {
+    explicitApi()
     androidTarget {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
@@ -16,6 +17,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":kmp-sha3"))
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
     }
 }

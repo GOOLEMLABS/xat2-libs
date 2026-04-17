@@ -6,6 +6,7 @@ plugins {
 }
 
 kotlin {
+    explicitApi()
     androidTarget {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
