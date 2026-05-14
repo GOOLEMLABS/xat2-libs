@@ -82,7 +82,11 @@ public object PHash {
         for (k in 0 until n) {
             var sum = 0.0
             for (x in 0 until n) sum += input[x] * cos(pi * k * (2.0 * x + 1.0) / (2.0 * n))
-            out[k] = (if (k == 0) sqrt(1.0 / n) else sqrt(2.0 / n) * sum).toFloat()
+            // Bug fix: previous form `if (k == 0) sqrt(1.0/n) else sqrt(2.0/n) * sum`
+            // dropped the `* sum` on the k==0 branch due to operator precedence —
+            // it returned a constant. Use an explicit alpha to force the multiply.
+            val alpha = if (k == 0) sqrt(1.0 / n) else sqrt(2.0 / n)
+            out[k] = (alpha * sum).toFloat()
         }
         return out
     }

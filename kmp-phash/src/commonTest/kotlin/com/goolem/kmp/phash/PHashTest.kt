@@ -36,6 +36,18 @@ class PHashTest {
     }
 
     @Test
+    fun computeIsDataDependent() {
+        // Regression for the operator-precedence bug in dct1d where the k==0
+        // branch returned `sqrt(1.0/n)` (a constant) instead of `sqrt(1.0/n) * sum`,
+        // making part of the DCT spectrum independent of the input. With the bug,
+        // structurally different images can converge to overlapping hashes.
+        // Minimum invariant: different inputs must produce different hashes.
+        val a = ByteArray(32 * 32) { (it % 256).toByte() }
+        val b = ByteArray(32 * 32) { ((it * 17) % 256).toByte() }
+        assertTrue(PHash.compute(a) != PHash.compute(b), "different inputs must hash differently")
+    }
+
+    @Test
     fun wrongSizeThrows() {
         kotlin.test.assertFailsWith<IllegalArgumentException> {
             PHash.compute(ByteArray(100))
